@@ -99,10 +99,10 @@ func ScaleDeployment(name string, replicas int, namespace, context, kubeconfig s
 }
 
 func DeleteByLabelKinds(namespace, context, kubeconfig string, kinds []string, selector string) (string, error) {
-    // kubectl -n ns delete kind/kind -l selector
-    args := []string{"delete"}
-    for _, k := range kinds { args = append(args, k) }
-    args = append(args, "-l", selector, "--ignore-not-found=true")
+    // Use a single comma-separated resource list to avoid kubectl treating positional args as names.
+    // Example: kubectl delete jobs,deployments,pods,services -l app=...
+    resourceList := strings.Join(kinds, ",")
+    args := []string{"delete", resourceList, "-l", selector, "--ignore-not-found=true"}
     res, err := Run(args, namespace, context, kubeconfig, nil)
     return res.Stdout, err
 }
@@ -112,4 +112,3 @@ func DeleteClusterScopedByLabel(context, kubeconfig, resource, selector string) 
     res, err := Run(args, "", context, kubeconfig, nil)
     return res.Stdout, err
 }
-
